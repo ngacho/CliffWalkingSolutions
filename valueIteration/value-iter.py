@@ -78,8 +78,8 @@ n_state = env.observation_space.n
 # observation, info = env.reset()
 
 
-gamma = 0.8 #Discount factor
-transition_probability = 0.2 # Transition probability
+gamma = 0.4 #Discount factor
+transition_probability = 1 # Transition probability
 
 for i in range(0, 5):
     values = np.full((n_state), 0.0).astype(np.float32)
@@ -142,7 +142,7 @@ for i in range(0, 5):
     # fig.subplots_adjust(bottom=0.05)
     ax.text(0.5, 0.1, info_text, transform=ax.transAxes, ha='center')
 
-    plt.savefig(f"plots/value-iter-{round(gamma, 2)}-transition-probability-{transition_probability}.png")
+    plt.savefig(f"plots/gamma-{round(gamma, 2)}-transition-probability-{transition_probability}.png")
     # Clear with clf() function:
     plt.clf()
 
