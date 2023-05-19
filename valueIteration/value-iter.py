@@ -157,7 +157,7 @@ def create_multiplot(value_iteration_results):
         # Adjust the spacing between subplots
         fig.tight_layout()
 
-        plt.savefig(f"learning-rate-{gamma}.png")
+        plt.savefig(f"plots/learning-rate-{gamma}.png")
         print(f"Saved plot for {gamma}")
         # Clear with clf() function:
         plt.clf()
