@@ -127,7 +127,7 @@ def create_multiplot(value_iteration_results):
 
         fig, axes = plt.subplots(num_cols, num_rows, figsize=(60, 48))  # Adjust the figure size as needed
         # Set the background color of the figure
-        fig.patch.set_facecolor('lightgrey')  # Set to the desired color
+        fig.patch.set_facecolor('#999999')  # Set to the desired color
 
         # FLatten the axes
         axes = axes.flatten()
@@ -145,6 +145,7 @@ def create_multiplot(value_iteration_results):
             ax = axes[i]
             heatmap = ax.imshow(values, cmap='Greens')
             ax.set_title(f'Transition Prob: {transition_prob}, Goal/Punish Ratio: {goal_reward/punishment:.2f}')
+            ax.axis('off')
             fig.colorbar(heatmap, ax=ax)
 
             # Set the x and y axis labels only on the bottom row and left column
