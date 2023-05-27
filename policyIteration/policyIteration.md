@@ -1,5 +1,7 @@
 # On running the policy iteration algorithm.
 
-Top left corners still have the highest value making it desirable states. If you look at the policy conclusion, the arrows point towards remaining around the corner. As you can tell, this is suboptimal.
+The area in the top left corners still has the highest values when following our policies for most reward.
 
-Our agent consistently get's stuck on that corner.
+At low rewards, the agent is suboptimal. Consistently sticking around the top left corner area.
+
+When we increase the goal reward, and motivating the agent with random actions, then it ends up taking actions that lead us towards the end goal.
