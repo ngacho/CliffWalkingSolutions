@@ -70,11 +70,11 @@ def policy_evaluation(env, action_probability, gamma, theta, state_values, polic
             # update state values
             state_values[state] = new_state_val
             # iterate policy
-            policy[state] = policy_iteration(env, action_probability, state, state_values, transition_model)
+            policy[state] = policy_iteration(env, action_probability, gamma, state, state_values, transition_model)
     
     return state_values           
 
-def policy_iteration(env, action_probability, state, state_values, transition_model):
+def policy_iteration(env, action_probability, gamma, state, state_values, transition_model):
     """Return the expected action.
 
     It returns an action based on the
@@ -89,7 +89,7 @@ def policy_iteration(env, action_probability, state, state_values, transition_mo
         value = 0
         for transition in transition_list:
             transition_prob, next_state, reward, done = transition
-            value += action_probability[state][action] * transition_prob * state_values[next_state]
+            value += action_probability[state][action] * transition_prob *(reward + (gamma * state_values[next_state]))
        
         #Expected utility of doing a in state s, according to T and u.
         actions_array[action] = value
