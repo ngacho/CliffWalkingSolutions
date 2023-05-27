@@ -136,13 +136,12 @@ def plot_policies(policy_array, shape, goal_reward):
 
     
 def main():
-    env = gym.make('CliffWalking-v0', render_mode="human")
-    observation, info = env.reset(seed=42)
-    transition_model = env.P
-
-
     goal_reward = 100
     for i in range(5): 
+        env = gym.make('CliffWalking-v0', render_mode="human")
+        observation, info = env.reset(seed=42)
+        transition_model = env.P
+
         # discount factor gamma
         gamma = 0.99
         state_len = env.nS
@@ -171,6 +170,25 @@ def main():
         plot_values(state_values, goal_reward)
         print("NOTICE: state values are higher as you get closer to the goal.")
         goal_reward += 100
+
+        ## play game based on policy.
+        observation, info = env.reset(seed=42)
+        while True:
+            print(f"State : {observation}")
+            action = policy[observation] # take action based on policy.
+            new_observation, reward, terminated, truncated, info = env.step(action)
+            while observation == new_observation:
+                print(f"Taking random actions : {observation}")
+                # take random action
+                action = env.action_space.sample()
+                new_observation, reward, terminated, truncated, info = env.step(action)
+
+            if terminated or truncated:
+                observation, info = env.reset()
+                break
+            
+            observation = new_observation
+        env.close()
     
 
 
