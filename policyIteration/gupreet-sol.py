@@ -137,7 +137,8 @@ def plot_policies(policy_array, shape, goal_reward):
     
 def main():
     goal_reward = 100
-    for i in range(5): 
+    optimal_policies_reward = []
+    for i in range(26): 
         env = gym.make('CliffWalking-v0', render_mode="human")
         observation, info = env.reset(seed=42)
         transition_model = env.P
@@ -162,33 +163,51 @@ def main():
         print("****** Theta ******")
         print(theta)
         state_values = policy_evaluation(env, action_probability, gamma, theta, state_values, policy, transition_model, goal_reward)
+        if state_values[state_len-1] > 0:
+            print(f"!!POSITIVE Value FOR {goal_reward}")
+
+        if state_values[1] > state_values[0]:
+            print(f"Possible optimal policy at {optimal_policy_producing_reward}")
         print("****** Plot policies ******")
         plot_policies(policy, (4, 12), goal_reward)
-        print("****** Best state values ******")
+        # print("****** Best state values ******")
         state_values = np.round(state_values.reshape(4,12), 3)
-        print(state_values)
+        # print(state_values)
         plot_values(state_values, goal_reward)
         print("NOTICE: state values are higher as you get closer to the goal.")
         goal_reward += 100
 
         ## play game based on policy.
         observation, info = env.reset(seed=42)
+        num_actions = 0
+        random_action = False
         while True:
-            print(f"State : {observation}")
             action = policy[observation] # take action based on policy.
-            new_observation, reward, terminated, truncated, info = env.step(action)
+            new_observation, _, terminated, truncated, _ = env.step(action)
+            num_actions += 1
             while observation == new_observation:
-                print(f"Taking random actions : {observation}")
                 # take random action
                 action = env.action_space.sample()
-                new_observation, reward, terminated, truncated, info = env.step(action)
+                new_observation, _, terminated, truncated, _ = env.step(action)
+                num_actions += 1
+                random_action = True
+
+            if num_actions > 50:
+                print(f"Terminated without optimal policy\n")
+                observation, _ = env.reset()
+                break
 
             if terminated or truncated:
-                observation, info = env.reset()
+                print(f"Terminated normally")
+                print(f" Goal reward: {goal_reward} {'Terminated without taking random action' if not random_action else '' } ")
+                observation, _ = env.reset()
                 break
             
             observation = new_observation
         env.close()
+
+    for optimal_policy_producing_reward in optimal_policies_reward:
+        print(f"Possible optmal policy at {optimal_policy_producing_reward}")
     
 
 
