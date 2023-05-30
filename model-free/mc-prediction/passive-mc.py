@@ -171,7 +171,7 @@ def main():
     ## discount factor
     gamma = 0.9
     ## initialize episodes
-    tot_epoch = 100000 + 1
+    tot_epoch = 100000
     # make the environment
     env = gym.make('CliffWalking-v0', render_mode="None")
     state_len = env.nS
@@ -202,6 +202,8 @@ def main():
 
         # graph the utility matrix after an epoch.
         if epoch % (tot_epoch / 10) == 0:
+            # making the negative terminal state values worse than the least negative values
+            average_returns[37:47] = np.amin(average_returns) - 1
             average_returns = np.round(average_returns.reshape(4,12), 3)
             print("****** Plot policies ******")
             state_values = average_returns.copy()
