@@ -170,7 +170,7 @@ def main():
      ## discount factor
     gamma = 0.9
     ## initialize episodes
-    tot_epoch = 200000
+    tot_epoch = 1000000
     # e-greedy policy
     epsilon = 0.7
     # make the environment
@@ -198,7 +198,6 @@ def main():
 
             new_observation, reward, terminated, truncated, info = env.step(action)
             #Append the visit in the episode list
-            if new_observation == 47: reward = 1200
             episode_list.append((observation, action, reward))
             observation = new_observation
             if terminated or truncated: break
@@ -211,9 +210,7 @@ def main():
         # graph state action values.
         if epoch % (tot_epoch / 10) == 0:
             ## minimize state action values of terminal states
-            # for i in range(37, 47):
-            #     average_state_action_return[:, i] = [np.amin(average_state_action_return) * 10 for _ in range(4)]
-
+            
             print("****** Plot state action values ******")
             plot_state_action(average_state_action_return, action_len, epoch)
             print("****** Plot policy ******")
