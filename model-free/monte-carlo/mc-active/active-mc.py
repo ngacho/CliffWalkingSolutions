@@ -80,14 +80,40 @@ def triangulation_for_triheatmap(col, row):
                   for j in range(row) for i in range(col)]
     return [Triangulation(x, y, triangles) for triangles in [trianglesN, trianglesE, trianglesS, trianglesW]]
 
+
+# your function
+def normalize_list(non_normalized_list, shape=(4, 12)):
+    non_normalized_list = non_normalized_list.copy()
+
+
+    """
+        Takes a 2d list and normalizes it's values.
+    """
+    max_value = np.amax(non_normalized_list)
+    min_value = np.amin(non_normalized_list)
+   
+    for i in range(shape[0]):
+        non_normalized_list[i] = (non_normalized_list[i] - min_value) / (max_value - min_value)
+    return non_normalized_list
+
 def plot_state_action(state_action_values, action_len, epoch):
+    # normalize state action values
+    state_action_values = normalize_list(state_action_values)
     col, row = 12, 4  # e.g. 5 columns, 4 rows
     values = state_action_values.reshape((action_len, col, row))
     triangul = triangulation_for_triheatmap(col, row)
-    norms = [plt.Normalize(-0.5, 1) for _ in range(4)]
     fig, ax = plt.subplots(figsize=(20, 16))
-    imgs = [ax.tripcolor(t, val.ravel(), cmap='RdYlGn', ec='white')
+    imgs = [ax.tripcolor(t, val.ravel(), cmap='RdYlGn', vmin=0, vmax=1, ec='white')
         for t, val in zip(triangul, values)]
+    
+    # Add text annotations
+    # for val, dir in zip(values, [(-1, 0), (0, 1), (1, 0), (0, -1)]):
+    #     for i in range(col):
+    #         for j in range(row):
+    #             for k in range(action_len):
+    #                 v = round(values[k, i, j], 2)
+    #                 ax.text(i + 0.3 * dir[1], j + 0.3 * dir[0], f'{v}', color='b', ha='center', va='center')
+    
 
     ax.set_xticks(range(col))
     ax.set_yticks(range(row))
@@ -96,8 +122,8 @@ def plot_state_action(state_action_values, action_len, epoch):
     ax.set_aspect('equal', 'box')  # square cells
     cbar = fig.colorbar(imgs[0], ax=ax)
     ax.axis('off')
-    plt.savefig(f"plots/q-values-heatmap-{epoch}.png")
-    plt.clf()
+    plt.savefig(f"plots/normalized-q-values-heatmap-{epoch}.png")
+    plt.close()
 
 def get_policy(state_action_values, state_len):
     policy = np.zeros(state_len, dtype="int64")
@@ -170,7 +196,7 @@ def main():
      ## discount factor
     gamma = 0.9
     ## initialize episodes
-    tot_epoch = 1000000
+    tot_epoch = 500000
     # e-greedy policy
     epsilon = 0.7
     # make the environment
