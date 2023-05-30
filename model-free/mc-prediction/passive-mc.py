@@ -182,7 +182,7 @@ def main():
     running_mean_matrix = np.full(state_len, 1.0e-10) 
 
     ## for each episode:
-    for epoch in range(tot_epoch):
+    for epoch in range(tot_epoch + 1):
         # reset the environment.
         observation, info = env.reset()
         reward = -1
