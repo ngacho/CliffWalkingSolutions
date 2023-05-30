@@ -33,6 +33,7 @@ def plot_policies(policy_array, shape):
     # Convert numbers to arrows
     convert_to_arrow = np.vectorize(lambda x: action_dict[x])
     arrow_array = convert_to_arrow(policy_array)
+    arrow_array[37:47] = ""
 
     # Reshape the array to (4, 12) and reverse the order of rows
     reshaped_arrows = np.flipud(arrow_array.reshape(4, 12))
@@ -44,8 +45,8 @@ def plot_policies(policy_array, shape):
     ax.imshow([[0]], cmap='Greys', extent=(0, 12, 0, 4))
 
     # Iterate over the reshaped array and plot the arrows in each cell
-    for i in range(4):
-        for j in range(12):
+    for i in range(shape[0]):
+        for j in range(shape[1]):
             arrow = reshaped_arrows[i, j]
             ax.text(j + 0.5, i + 0.5, arrow, fontsize=12, ha='center', va='center')
             rect = Rectangle((j, i), 1, 1, linewidth=1, edgecolor='black', facecolor='none')
@@ -185,7 +186,6 @@ def main():
     for epoch in range(tot_epoch + 1):
         # reset the environment.
         observation, info = env.reset()
-        reward = -1
         ## initialize random policy
         policy = np.random.randint(low=0, high=action_len, size=state_len, dtype="int64")
         # start new episode
@@ -193,7 +193,7 @@ def main():
         for action in policy:
             # episode_list.append((observation, reward))
             observation, reward, terminated, truncated, info = env.step(action)
-            # if observation == 0: reward = -1
+            # increase the reward
             if observation == 47: reward = 100
             episode_list.append((observation, reward))
             if terminated or truncated: break
