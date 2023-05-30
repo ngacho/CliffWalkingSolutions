@@ -26,9 +26,9 @@ def get_return(state_list, gamma):
 def update_policy(episode_list,policy, average_state_action_return):
     for visit in episode_list:
         observation, _, _ = visit
-        if policy[observation] != -1:
-            # update policy to be the one with the highest value for each state
-            policy[observation] = np.argmax(average_state_action_return[:, observation])
+        # update policy to be the one with the highest value for each state
+        policy[observation] = np.argmax(average_state_action_return[:, observation])
+            
 
     return policy
     
