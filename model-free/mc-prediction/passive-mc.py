@@ -107,7 +107,7 @@ def calculate_state_value_first_visit(episode_list, utility_matrix, running_mean
             checkup_matrix[observation] = 1
         counter += 1
 
-    return utility_matrix, running_mean_matrix
+    return utility_matrix / running_mean_matrix
 
 def calculate_state_value_every_visit(episode_list, utility_matrix, running_mean_matrix, gamma, state_len):
     # if the episode is finished, try estimating utility
@@ -131,7 +131,7 @@ def calculate_state_value_every_visit(episode_list, utility_matrix, running_mean
             checkup_matrix[observation] = 1
         counter += 1
 
-    return utility_matrix, running_mean_matrix
+    return utility_matrix / running_mean_matrix
 
 def play_game(optimal_policy):
     env = gym.make('CliffWalking-v0', render_mode="human")
@@ -198,11 +198,10 @@ def main():
             episode_list.append((observation, reward))
             if terminated or truncated: break
 
-        utility_matrix, running_mean_matrix = calculate_state_value_first_visit(episode_list, utility_matrix, running_mean_matrix, gamma, state_len)
+        average_returns = calculate_state_value_first_visit(episode_list, utility_matrix, running_mean_matrix, gamma, state_len)
 
         # graph the utility matrix after an epoch.
         if epoch % (tot_epoch / 10) == 0:
-            average_returns = utility_matrix / running_mean_matrix
             average_returns = np.round(average_returns.reshape(4,12), 3)
             print("****** Plot policies ******")
             state_values = average_returns.copy()
