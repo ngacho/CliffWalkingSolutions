@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import gymnasium as gym
 from matplotlib.patches import Rectangle
 from matplotlib.tri import Triangulation
+import time
 import random
 
 def get_return(state_list, gamma):
@@ -136,6 +137,7 @@ def play_game(optimal_policy):
     env = gym.make('CliffWalking-v0', render_mode="human")
     observation, info = env.reset(seed=42)
     num_actions = 0
+    time.sleep(5)
     while True:
         action = int(optimal_policy[observation]) # take action based on policy.
         new_observation, _, terminated, truncated, _ = env.step(action)
@@ -198,7 +200,7 @@ def main():
     ## initialize episodes
     tot_epoch = 500000
     # e-greedy policy
-    epsilon = 0.7
+    epsilon = 0.5
     # make the environment
     env = gym.make('CliffWalking-v0', render_mode="None")
     state_len = env.nS
