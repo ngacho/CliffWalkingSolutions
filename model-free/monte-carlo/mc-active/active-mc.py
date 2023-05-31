@@ -187,6 +187,19 @@ def calculate_state_value_first_visit(episode_list, state_action_values, running
 
 
 
+def simulate_explore_starts(env):
+    # reset the environment.
+    observation, info = env.reset()
+    # simulate exploring starts
+    for _ in range(50):
+        action = np.random.randint(0, high=4, dtype='int32')
+        new_observation, _, terminated, truncated, _ = env.step(action)
+        observation = new_observation
+        if terminated or truncated: 
+            observation, info = env.reset()
+
+    return observation
+
 def main():
     """
         At each step, the agent records the reward obtained 
@@ -214,7 +227,7 @@ def main():
      ## for each episode:
     for epoch in range(tot_epoch + 1):
         # reset the environment.
-        observation, info = env.reset()
+        observation = simulate_explore_starts(env)
         # save episodes in a list
         episode_list = list()
         # a thousand random actions e-greedy
@@ -257,6 +270,7 @@ def main():
 
     ## play the game
     print("************ Playing game with optimal policies ************")
+    print(policy)
     play_game(policy)
 
 if __name__ == "__main__":
