@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import pprint as pp
+import time
 
 def get_return(statelist, gamma):
     """
@@ -135,6 +136,7 @@ def calculate_state_value_every_visit(episode_list, utility_matrix, running_mean
     return utility_matrix / running_mean_matrix
 
 def play_game(optimal_policy):
+    time.sleep(5)
     env = gym.make('CliffWalking-v0', render_mode="human")
     observation, info = env.reset(seed=42)
     num_actions = 0
@@ -162,6 +164,19 @@ def play_game(optimal_policy):
     env.close()
 
 
+def simulate_explore_starts(env):
+    # reset the environment.
+    observation, info = env.reset()
+    # simulate exploring starts
+    for _ in range(50):
+        action = np.random.randint(0, high=4, dtype='int32')
+        new_observation, _, terminated, truncated, _ = env.step(action)
+        observation = new_observation
+        if terminated or truncated: 
+            observation, info = env.reset()
+
+    return observation
+
 def main():
     """
         At each step, the agent records the reward obtained 
@@ -172,9 +187,9 @@ def main():
     ## discount factor
     gamma = 0.9
     ## initialize episodes
-    tot_epoch = 100000
+    tot_epoch = 1000000
     # make the environment
-    env = gym.make('CliffWalking-v0', render_mode="None")
+    env = gym.make('CliffWalking-v0', render_mode="none")
     state_len = env.nS
     action_len = env.nA
     ## initialize utility matrix to estimate value of utility
@@ -185,7 +200,7 @@ def main():
     ## for each episode:
     for epoch in range(tot_epoch + 1):
         # reset the environment.
-        observation, info = env.reset()
+        observation = simulate_explore_starts(env)
         ## initialize random policy
         policy = np.random.randint(low=0, high=action_len, size=state_len, dtype="int64")
         # start new episode
@@ -194,7 +209,7 @@ def main():
             # episode_list.append((observation, reward))
             observation, reward, terminated, truncated, info = env.step(action)
             # increase the reward
-            if observation == 47: reward = 100
+            # if observation == 47: reward = 100
             episode_list.append((observation, reward))
             if terminated or truncated: break
 
@@ -210,7 +225,7 @@ def main():
             state_values = np.round(state_values.reshape(4,12), 3)
             plot_values(state_values, epoch)
 
-        print(f"Episode {epoch} finished...")
+        print(f"********* Episode {epoch} finished *********")
     # close environment
     env.close()
 
