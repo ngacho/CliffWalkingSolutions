@@ -211,7 +211,7 @@ def main():
      ## discount factor
     gamma = 0.9
     ## initialize episodes
-    tot_epoch = 500000
+    tot_epoch = 1000000
     # e-greedy policy
     epsilon = 0.5
     # make the environment
