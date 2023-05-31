@@ -106,7 +106,6 @@ def normalize_list(non_normalized_list):
     range_value = max_value - min_value
 
     for i in range(len(non_normalized_list)):
-        print(f"range_value")
         non_normalized_list[i] = non_normalized_list[i] if range_value == 0 else (non_normalized_list[i] - min_value) / range_value
 
     return non_normalized_list
@@ -117,6 +116,9 @@ def plot_values(state_values, shape, epoch):
     fig = plt.figure()
     fig.patch.set_facecolor('#999999')
     plt.imshow(state_values, interpolation='none',  cmap='Greens')
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            plt.text(j, i, "{:.2f}".format(state_values[i, j]), color='black', ha='center', va='center')
     plt.axis('off')
     plt.savefig(f"plots/utility-estimate-after-epoch-{epoch}.png")
     plt.clf()
@@ -137,12 +139,12 @@ def simulate_explore_starts(env):
     
 
 def main():
-     ## discount factor
+    ## discount factor
     gamma = 0.9
     ## step size
     alpha = 0.1
     ## initialize episodes
-    tot_epoch = 1000000
+    tot_epoch = 100000
     # make the environment
     env = gym.make('CliffWalking-v0', render_mode="None")
     state_len = env.nS
@@ -160,8 +162,7 @@ def main():
     optimal_policy = np.array(optimal_policy)
     print_policy(optimal_policy, (4, 12))
     for epoch in range(tot_epoch + 1):
-        observation = simulate_explore_starts(env)
-        print(f"\tStarting episode {epoch} from {observation}")   
+        observation = simulate_explore_starts(env) 
         while True:
              # take action from policy
             action = optimal_policy[observation]
@@ -174,9 +175,9 @@ def main():
 
         # draw q-values
         if epoch % (tot_epoch / 10) == 0:
-            # values = normalize_list(utility_matrix)
+            values = normalize_list(utility_matrix)
             # print(utility_matrix)
-            plot_values(utility_matrix, (4, 12), epoch)
+            plot_values(values, (4, 12), epoch)
             print(f"******** Episode {epoch} completed ********")
 
     env.close()
