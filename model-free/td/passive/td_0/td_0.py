@@ -5,7 +5,6 @@ from matplotlib.patches import Rectangle
 import pprint as pp
 import sys
 import time
-    
 
 def print_policy(p, shape): 
     """Printing utility.
@@ -29,21 +28,6 @@ def print_policy(p, shape):
             counter += 1
         policy_string += '\n' 
     print(policy_string)
-
-def plot_values(state_values, shape, epoch):
-    state_values = np.round(state_values.reshape(shape), 3)
-    fig = plt.figure()
-    fig.patch.set_facecolor('#999999')
-    plt.imshow(state_values, interpolation='none', cmap='Greens')
-    
-    # Add text values to the plot
-    for i in range(shape[0]):
-        for j in range(shape[1]):
-            plt.text(j, i, "{:.2f}".format(state_values[i, j]), color='black', ha='center', va='center')
-    
-    plt.axis('off')
-    plt.savefig(f"plots/utility-estimate-after-epoch-{epoch}.png")
-    plt.clf()
 
 def play_game(optimal_policy):
     env = gym.make('CliffWalking-v0', render_mode="human")
@@ -73,22 +57,6 @@ def play_game(optimal_policy):
         observation = new_observation
     env.close()
 
-def normalize_list(non_normalized_list):
-    non_normalized_list = non_normalized_list.copy()
-
-
-    """
-        Takes a 2d list and normalizes it's values.
-    """
-    max_value = np.amax(non_normalized_list)
-    min_value = np.amin(non_normalized_list)
-    range_value = max_value - min_value
-
-    for i in range(len(non_normalized_list)):
-        non_normalized_list[i] = non_normalized_list[i] if range_value == 0 else (non_normalized_list[i] - min_value) / range_value
-
-    return non_normalized_list
-
 def find_optimal_policy(utility_matrix, env):
     """
 
@@ -117,6 +85,44 @@ def find_optimal_policy(utility_matrix, env):
     print_policy(optimal_policy, (4, 12))
     return optimal_policy
 
+def get_return(utility_matrix, state, new_state, reward, alpha, gamma):
+    """
+        U(st)←U(st) + α[rt+1 + γU(st+1) − U(st)]
+    """
+    # denormalized_utility = updated_utility if range_value == 0 else updated_utility * range_value + min_value
+    updated_utility = utility_matrix[state] + alpha * (reward + (gamma * (utility_matrix[new_state]) - utility_matrix[state]))
+
+    return updated_utility
+
+def normalize_list(non_normalized_list):
+    normalized_list = non_normalized_list.copy()
+
+
+    """
+        Takes a 2d list and normalizes it's values.
+    """
+    max_value = np.amax(normalized_list)
+    min_value = np.amin(normalized_list)
+    range_value = max_value - min_value
+
+    for i in range(len(normalized_list)):
+        normalized_list[i] = normalized_list[i] if range_value == 0 else (normalized_list[i] - min_value) / range_value
+
+    return normalized_list
+
+
+def plot_values(state_values, shape, epoch):
+    state_values = np.round(state_values.reshape(shape), 3)
+    fig = plt.figure()
+    fig.patch.set_facecolor('#999999')
+    plt.imshow(state_values, interpolation='none',  cmap='Greens')
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            plt.text(j, i, "{:.2f}".format(state_values[i, j]), color='black', ha='center', va='center')
+    plt.axis('off')
+    plt.savefig(f"plots/utility-estimate-after-epoch-{epoch}.png")
+    plt.clf()
+
 def simulate_explore_starts(env):
     # reset the environment.
     observation, info = env.reset()
@@ -130,38 +136,16 @@ def simulate_explore_starts(env):
 
     return observation
 
-def update_utility(utility_matrix, trace_matrix, alpha, delta):
-    '''Return the updated utility matrix
-
-    @param utility_matrix the matrix before the update
-    @param alpha the step size (learning rate)
-    @param delta the error (Taget-OldEstimte) 
-    @return the updated utility matrix
-    '''
-    utility_matrix += alpha * delta * trace_matrix
-    return utility_matrix
-
-def update_eligibility(trace_matrix, gamma, lambda_):
-    '''Return the updated trace_matrix
-
-    @param trace_matrix the eligibility traces matrix
-    @param gamma discount factor
-    @param lambda_ the decaying value
-    @return the updated trace_matrix
-    '''
-    trace_matrix = trace_matrix * gamma * lambda_
-    return trace_matrix
-
+    
 
 def main():
     ## discount factor
     gamma = 0.9
     ## step size
     alpha = 0.1
-    ## decaying value
-    lambda_ = 0.2
     ## initialize episodes
     tot_epoch = 1000000
+    # tot_epoch = 1000
     # make the environment
     env = gym.make('CliffWalking-v0', render_mode="None")
     state_len = env.nS
@@ -173,28 +157,22 @@ def main():
     reward_matrix = np.full(state_len, -1)
     reward_matrix[37:47] = -10
     reward_matrix[47] = 100
-    # trace matrix
-    trace_matrix = np.full(state_len, 1)
-    
+    ## optimal policy.
+    # [1 1 1 1 1 1 1 1 1 1 1 2 1 0 0 0 0 0 0 0 0 1 1 2 0 0 0 0 0 0 0 0 0 0 1 2 0 2 3 2 0 1 0 3 2 3 1 3]
     optimal_policy = [2 for _ in range(state_len//4)] + [2 for _ in range(state_len//4)] + [1 for _ in range((state_len//4) - 1)] + [2] + [0 for _ in range((state_len//4) - 1)] + [2]
+    optimal_policy = np.array(optimal_policy)
+    print_policy(optimal_policy, (4, 12))
     last_changed = 0
     for epoch in range(tot_epoch + 1):
         old_utility_matrix = utility_matrix.copy()
-        observation = simulate_explore_starts(env)
-        # print(f"\tStarting episode {epoch} from {observation}")   
+        observation = simulate_explore_starts(env) 
         while True:
              # take action from policy
             action = optimal_policy[observation]
             new_observation, _, terminated, truncated, _ = env.step(action)
             reward = reward_matrix[new_observation]
-            delta = reward + (gamma * (utility_matrix[new_observation] - utility_matrix[observation]))
-            #Adding +1 in the trace matrix (only the state visited)
-            trace_matrix[observation] += 1
             # update the utility matrix
-            utility_matrix = update_utility(utility_matrix, trace_matrix, alpha, delta)
-            #Update the trace matrix (decaying) (all the states)
-            trace_matrix = update_eligibility(trace_matrix, gamma, lambda_)
-            # update the observation
+            utility_matrix[observation] = get_return(utility_matrix, observation, new_observation, reward, alpha, gamma)
             observation = new_observation
             if terminated or truncated: break
 
@@ -207,20 +185,17 @@ def main():
             plot_values(values, (4, 12), epoch)
             print(f"******** Episode {epoch} completed ********")
 
-        # rounded_normalized_old_values = np.round(old_utility_matrix, 4)
-        # rounded_normalized_changed_values = np.round(utility_matrix, 4)
-
+    
         if((old_utility_matrix != utility_matrix).any()):
             last_changed = epoch
 
-
-    optimal_policy = find_optimal_policy(utility_matrix, env)
-    print(f"utility matrix last changed at epoch {last_changed}")
-    play_game(optimal_policy)
-
-    # utility matrix stopped changing at epoch 393694
-
     env.close()
+    
+    print(f"utility matrix last changed at epoch {last_changed}")
+    # utility matrix last changed at epoch 405719
+    optimal_policy = find_optimal_policy(utility_matrix, env)
+    play_game(optimal_policy)
+        
 
-if __name__ ==  "__main__":
+if __name__ == "__main__":
     main()
