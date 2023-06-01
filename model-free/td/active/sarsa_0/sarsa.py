@@ -64,10 +64,8 @@ def plot_policies(policy_array, shape, epoch):
 
 def normalize_list(non_normalized_list, shape=(4, 12)):
     non_normalized_list = non_normalized_list.copy()
-
-
     """
-        Takes a 2d list and normalizes it's values.
+        Takes a list and normalizes it's values.
     """
     max_value = np.amax(non_normalized_list)
     min_value = np.amin(non_normalized_list)
@@ -126,7 +124,6 @@ def plot_state_action(state_action_values, action_len, epoch):
 def get_return(alpha, gamma, reward, state_action_val, new_state_new_action_val):
     """
         Q(st,at) ← Q(st,at) + α[rt+1 + γQ(st+1,at+1) − Q(st,at)]
-
     """
     return state_action_val + alpha * (reward + gamma * (new_state_new_action_val - state_action_val))
 
@@ -197,15 +194,7 @@ def main():
     print(f"********** Values last changed in epoch: {last_value_change} **********")
     print(f"********** Policy last changed in epoch: {last_policy_change} **********")
     play_game(policy)
-    
 
-
-    
-
-
-
-
-    pass
 
 if __name__ == "__main__":
     main()
