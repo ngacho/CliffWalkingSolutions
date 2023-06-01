@@ -12,3 +12,5 @@ In MC methods we need to wait the end of the episode in order to update the stat
 In TD(1), we do not need the end of the episode. We can update all the previous states online
 
 This ensures an early convergence and learning is faster.
+
+For numbers, running a 1,000,000 epochs shows that convergence for td_trace is at 393694.

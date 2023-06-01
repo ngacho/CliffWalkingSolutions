@@ -161,7 +161,7 @@ def main():
     ## decaying value
     lambda_ = 0.2
     ## initialize episodes
-    tot_epoch = 100000
+    tot_epoch = 1000000
     # make the environment
     env = gym.make('CliffWalking-v0', render_mode="None")
     state_len = env.nS
@@ -177,8 +177,9 @@ def main():
     trace_matrix = np.full(state_len, 1)
     
     optimal_policy = [2 for _ in range(state_len//4)] + [2 for _ in range(state_len//4)] + [1 for _ in range((state_len//4) - 1)] + [2] + [0 for _ in range((state_len//4) - 1)] + [2]
-
+    last_changed = 0
     for epoch in range(tot_epoch + 1):
+        old_utility_matrix = utility_matrix.copy()
         observation = simulate_explore_starts(env)
         # print(f"\tStarting episode {epoch} from {observation}")   
         while True:
@@ -199,14 +200,25 @@ def main():
 
         # draw q-values
         if epoch % (tot_epoch / 10) == 0:
+            utility_matrix[37:47] = -10
+            utility_matrix[47] = 100
             values = normalize_list(utility_matrix)
             # print(utility_matrix)
             plot_values(values, (4, 12), epoch)
             print(f"******** Episode {epoch} completed ********")
 
+        # rounded_normalized_old_values = np.round(old_utility_matrix, 4)
+        # rounded_normalized_changed_values = np.round(utility_matrix, 4)
+
+        if((old_utility_matrix != utility_matrix).any()):
+            last_changed = epoch
+
 
     optimal_policy = find_optimal_policy(utility_matrix, env)
+    print(f"utility matrix last changed at epoch {last_changed}")
     play_game(optimal_policy)
+
+    # utility matrix stopped changing at epoch 393694
 
     env.close()
 

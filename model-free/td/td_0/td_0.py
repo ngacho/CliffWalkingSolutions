@@ -95,20 +95,20 @@ def get_return(utility_matrix, state, new_state, reward, alpha, gamma):
     return updated_utility
 
 def normalize_list(non_normalized_list):
-    non_normalized_list = non_normalized_list.copy()
+    normalized_list = non_normalized_list.copy()
 
 
     """
         Takes a 2d list and normalizes it's values.
     """
-    max_value = np.amax(non_normalized_list)
-    min_value = np.amin(non_normalized_list)
+    max_value = np.amax(normalized_list)
+    min_value = np.amin(normalized_list)
     range_value = max_value - min_value
 
-    for i in range(len(non_normalized_list)):
-        non_normalized_list[i] = non_normalized_list[i] if range_value == 0 else (non_normalized_list[i] - min_value) / range_value
+    for i in range(len(normalized_list)):
+        normalized_list[i] = non_normalized_list[i] if range_value == 0 else (normalized_list[i] - min_value) / range_value
 
-    return non_normalized_list
+    return normalized_list
 
 
 def plot_values(state_values, shape, epoch):
@@ -144,7 +144,8 @@ def main():
     ## step size
     alpha = 0.1
     ## initialize episodes
-    tot_epoch = 100000
+    tot_epoch = 1000000
+    # tot_epoch = 1000
     # make the environment
     env = gym.make('CliffWalking-v0', render_mode="None")
     state_len = env.nS
@@ -161,7 +162,9 @@ def main():
     optimal_policy = [2 for _ in range(state_len//4)] + [2 for _ in range(state_len//4)] + [1 for _ in range((state_len//4) - 1)] + [2] + [0 for _ in range((state_len//4) - 1)] + [2]
     optimal_policy = np.array(optimal_policy)
     print_policy(optimal_policy, (4, 12))
+    last_changed = 0
     for epoch in range(tot_epoch + 1):
+        old_utility_matrix = utility_matrix.copy()
         observation = simulate_explore_starts(env) 
         while True:
              # take action from policy
@@ -175,14 +178,21 @@ def main():
 
         # draw q-values
         if epoch % (tot_epoch / 10) == 0:
+            utility_matrix[37:47] = -10
+            utility_matrix[47] = 100
             values = normalize_list(utility_matrix)
             # print(utility_matrix)
             plot_values(values, (4, 12), epoch)
             print(f"******** Episode {epoch} completed ********")
 
+    
+        if((old_utility_matrix != utility_matrix).any()):
+            last_changed = epoch
+
     env.close()
     
-    print(f"Utility matrix after {tot_epoch} epochs: {utility_matrix.reshape(4, 12)}")
+    print(f"utility matrix last changed at epoch {last_changed}")
+    # utility matrix last changed at epoch 405719
     optimal_policy = find_optimal_policy(utility_matrix, env)
     play_game(optimal_policy)
         
