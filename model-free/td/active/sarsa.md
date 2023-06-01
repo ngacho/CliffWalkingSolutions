@@ -27,4 +27,4 @@ observation = simulate_explore_starts(env)
 ```
 
 SARSA is FUCKING Insane. By far the fastest and most efficient way of solving cliffwalking solutions.
-My algorithm shows that sarsa converges after just 17,371 episodes. THAT's magnitudes lower than anything we have had so far.
+My algorithm shows that SARSA(0) converges after just 17,371 episodes. THAT's magnitudes lower than anything we have had so far.
