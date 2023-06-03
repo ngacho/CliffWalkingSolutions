@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import pprint as pp
-import sys
 import time
     
 
@@ -113,6 +112,8 @@ def find_optimal_policy(utility_matrix, env):
             actions_array[action] = value
         optimal_policy[state] = np.argmax(actions_array)
 
+    optimal_policy[37:48] = -1
+
     # graph optimal policy
     print_policy(optimal_policy, (4, 12))
     return optimal_policy
@@ -170,13 +171,11 @@ def main():
     utility_matrix = np.zeros(state_len)
     utility_matrix = np.float64(utility_matrix)
     # reward matrix
-    reward_matrix = np.full(state_len, -1)
-    reward_matrix[37:47] = -10
-    reward_matrix[47] = 100
-    # trace matrix
     trace_matrix = np.full(state_len, 1)
-    
+    # policy we use to estimate the values.
     optimal_policy = [2 for _ in range(state_len//4)] + [2 for _ in range(state_len//4)] + [1 for _ in range((state_len//4) - 1)] + [2] + [0 for _ in range((state_len//4) - 1)] + [2]
+    optimal_policy = np.array(optimal_policy)
+    optimal_policy[37:48] = -1
     last_changed = 0
     for epoch in range(tot_epoch + 1):
         old_utility_matrix = utility_matrix.copy()
@@ -185,8 +184,7 @@ def main():
         while True:
              # take action from policy
             action = optimal_policy[observation]
-            new_observation, _, terminated, truncated, _ = env.step(action)
-            reward = reward_matrix[new_observation]
+            new_observation, reward, terminated, truncated, _ = env.step(action)
             delta = reward + (gamma * (utility_matrix[new_observation] - utility_matrix[observation]))
             #Adding +1 in the trace matrix (only the state visited)
             trace_matrix[observation] += 1
@@ -200,27 +198,19 @@ def main():
 
         # draw q-values
         if epoch % (tot_epoch / 10) == 0:
-            utility_matrix[37:47] = -10
-            utility_matrix[47] = 100
             values = normalize_list(utility_matrix)
             # print(utility_matrix)
             plot_values(values, (4, 12), epoch)
             print(f"******** Episode {epoch} completed ********")
 
-        # rounded_normalized_old_values = np.round(old_utility_matrix, 4)
-        # rounded_normalized_changed_values = np.round(utility_matrix, 4)
-
         if((old_utility_matrix != utility_matrix).any()):
             last_changed = epoch
 
+    env.close()
 
     optimal_policy = find_optimal_policy(utility_matrix, env)
     print(f"utility matrix last changed at epoch {last_changed}")
     play_game(optimal_policy)
-
-    # utility matrix stopped changing at epoch 393694
-
-    env.close()
 
 if __name__ ==  "__main__":
     main()

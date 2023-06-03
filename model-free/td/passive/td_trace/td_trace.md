@@ -13,4 +13,6 @@ In TD(1), we do not need the end of the episode. We can update all the previous 
 
 This ensures an early convergence and learning is faster.
 
-For numbers, running a 1,000,000 epochs shows that convergence for td_trace is at 393694.
+For numbers, running a 1,000,000 epochs shows that convergence for td_trace is at 580,000 - 620,000 area.
+
+Note that the terminal values in our utility estimates are always one. This is because I normalized the actual utility values. The terminal states have no utilities and therefore they remain zero, evaluating to 1 when normalized.

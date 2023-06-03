@@ -77,10 +77,11 @@ def find_optimal_policy(utility_matrix, env):
             value = 0
             for transition in transition_list:
                 transition_prob, next_state, reward, done = transition
-                value += (utility_matrix[next_state] * transition_prob)                
+                value += (utility_matrix[next_state] * transition_prob)          
             actions_array[action] = value
         optimal_policy[state] = np.argmax(actions_array)
 
+    optimal_policy[37:48] = -1
     # graph optimal policy
     print_policy(optimal_policy, (4, 12))
     return optimal_policy
@@ -153,14 +154,9 @@ def main():
     ## initialize utility matrix to estimate value of utility
     utility_matrix = np.zeros(state_len)
     utility_matrix = np.float64(utility_matrix)
-    # reward matrix
-    reward_matrix = np.full(state_len, -1)
-    reward_matrix[37:47] = -10
-    reward_matrix[47] = 100
-    ## optimal policy.
-    # [1 1 1 1 1 1 1 1 1 1 1 2 1 0 0 0 0 0 0 0 0 1 1 2 0 0 0 0 0 0 0 0 0 0 1 2 0 2 3 2 0 1 0 3 2 3 1 3]
     optimal_policy = [2 for _ in range(state_len//4)] + [2 for _ in range(state_len//4)] + [1 for _ in range((state_len//4) - 1)] + [2] + [0 for _ in range((state_len//4) - 1)] + [2]
     optimal_policy = np.array(optimal_policy)
+    optimal_policy[37:48] = -1
     print_policy(optimal_policy, (4, 12))
     last_changed = 0
     for epoch in range(tot_epoch + 1):
@@ -169,17 +165,13 @@ def main():
         while True:
              # take action from policy
             action = optimal_policy[observation]
-            new_observation, _, terminated, truncated, _ = env.step(action)
-            reward = reward_matrix[new_observation]
-            # update the utility matrix
+            new_observation, reward, terminated, truncated, _ = env.step(action)
             utility_matrix[observation] = get_return(utility_matrix, observation, new_observation, reward, alpha, gamma)
             observation = new_observation
             if terminated or truncated: break
 
         # draw q-values
         if epoch % (tot_epoch / 10) == 0:
-            utility_matrix[37:47] = -10
-            utility_matrix[47] = 100
             values = normalize_list(utility_matrix)
             # print(utility_matrix)
             plot_values(values, (4, 12), epoch)
