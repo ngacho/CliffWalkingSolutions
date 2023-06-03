@@ -26,5 +26,10 @@ observation = simulate_explore_starts(env)
         if terminated or truncated: break
 ```
 
-SARSA is FUCKING Insane. By far the fastest and most efficient way of solving cliffwalking solutions.
+SARSA is **FUCKING** Insane. By far the fastest and most efficient way of solving cliffwalking solutions.
 My algorithm shows that SARSA(0) converges after just 17,371 episodes. THAT's magnitudes lower than anything we have had so far.
+
+
+SARSA traces doesn't perform as well for this task. Values are shown to converge after 393304 episodes while the policy converges after 78,872 episodes.
+
+What makes SARSA-0 sooo goood at cliffwalking?
