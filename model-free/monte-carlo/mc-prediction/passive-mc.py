@@ -5,6 +5,29 @@ from matplotlib.patches import Rectangle
 import pprint as pp
 import time
 
+def print_policy(p, shape=(4, 12)): 
+    """Printing utility.
+        Print the policy actions using symbols: 
+        ^, v, <, > up, down, left, right
+        * terminal states
+        # obstacles
+        0 up, 1:  right, 2: down, 3: left
+    """
+    # Example action dictionary mapping
+    counter = 0
+    policy_string = ""
+    for _ in range(shape[0]):
+        for _ in range(shape[1]): 
+            if (p[counter]== -1): policy_string+=" * "
+            elif(p[counter]==0) : policy_string+=" ^ "
+            elif(p[counter]==1) : policy_string+=" > "
+            elif(p[counter]==2) : policy_string+=" v "
+            elif(p[counter]==3) : policy_string+=" < "
+            elif(np.isnan(p[counter])) : policy_string+="# " 
+            counter += 1
+        policy_string += '\n' 
+    print(policy_string)
+
 def get_return(statelist, gamma):
     """
         @param statelist : list of (state, reward) pairs from current state until the terminal state
@@ -30,11 +53,10 @@ def plot_values(state_values, epoch):
 
 def plot_policies(policy_array, shape):
     # Example action dictionary mapping
-    action_dict = {0: "^", 1: ">", 2: "v", 3: "<"}
+    action_dict = {-1:"*", 0: "^", 1: ">", 2: "v", 3: "<"}
     # Convert numbers to arrows
     convert_to_arrow = np.vectorize(lambda x: action_dict[x])
     arrow_array = convert_to_arrow(policy_array)
-    arrow_array[37:47] = ""
 
     # Reshape the array to (4, 12) and reverse the order of rows
     reshaped_arrows = np.flipud(arrow_array.reshape(4, 12))
@@ -55,7 +77,7 @@ def plot_policies(policy_array, shape):
 
     ax.axis('off')
     plt.savefig(f"plots/Optimal-policy.png")
-    plt.clf()
+    plt.close()
 
 
 def find_optimal_policy(utility_matrix, env):
@@ -82,6 +104,7 @@ def find_optimal_policy(utility_matrix, env):
             actions_array[action] = value
         optimal_policy[state] = np.argmax(actions_array)
 
+    optimal_policy[37:48] = -1
     # graph optimal policy
     plot_policies(optimal_policy, (4, 12))
     return optimal_policy
@@ -187,7 +210,7 @@ def main():
     ## discount factor
     gamma = 0.9
     ## initialize episodes
-    tot_epoch = 1000000
+    tot_epoch = 5000000
     # make the environment
     env = gym.make('CliffWalking-v0', render_mode="none")
     state_len = env.nS
@@ -197,41 +220,58 @@ def main():
     #init with 1.0e-10 to avoid division by zero
     running_mean_matrix = np.full(state_len, 1.0e-10) 
 
+    # define policy (this is the optimal policy)
+    policy = [2 for _ in range(state_len//4)] + [2 for _ in range(state_len//4)] + [1 for _ in range((state_len//4) - 1)] + [2] + [0 for _ in range((state_len//4) - 1)] + [2]
+    policy = np.array(policy)
+    policy[37:48] = -1
+
+    last_changed = 0
+
+    print_policy(policy)
+
     ## for each episode:
     for epoch in range(tot_epoch + 1):
+        old_average_returns = utility_matrix / running_mean_matrix
         # reset the environment.
         observation = simulate_explore_starts(env)
-        ## initialize random policy
-        policy = np.random.randint(low=0, high=action_len, size=state_len, dtype="int64")
         # start new episode
         episode_list = list()
-        for action in policy:
+        while True:
+            action = policy[observation]
             # episode_list.append((observation, reward))
-            observation, reward, terminated, truncated, info = env.step(action)
+            new_observation, reward, terminated, truncated, info = env.step(action)
             # increase the reward
             # if observation == 47: reward = 100
             episode_list.append((observation, reward))
+            observation = new_observation
             if terminated or truncated: break
 
         average_returns = calculate_state_value_first_visit(episode_list, utility_matrix, running_mean_matrix, gamma, state_len)
 
         # graph the utility matrix after an epoch.
         if epoch % (tot_epoch / 10) == 0:
-            # making the negative terminal state values worse than the least negative values
-            average_returns[37:47] = np.amin(average_returns) - 1
-            average_returns = np.round(average_returns.reshape(4,12), 3)
             print("****** Plot policies ******")
             state_values = average_returns.copy()
             state_values = np.round(state_values.reshape(4,12), 3)
             plot_values(state_values, epoch)
+            print(f"******** Episode {epoch} completed ********")
 
-        print(f"********* Episode {epoch} finished *********")
+        if epoch % (tot_epoch / 50000) == 0:
+            print(f"<++++++++ episode {epoch} ++++++++>")
+
+        if((old_average_returns != average_returns).any()):
+            last_changed = epoch
+
+
+
     # close environment
     env.close()
 
     ## after all episodes are done, find and plot the optimal policy
-    optimal_policy = find_optimal_policy(utility_matrix, env)
-    print(optimal_policy)
+    optimal_policy = find_optimal_policy(average_returns, env)
+    print_policy(optimal_policy, shape=(4, 12))
+
+    print(f"average returns last changed at epoch {last_changed}")
 
     #
     # play game
