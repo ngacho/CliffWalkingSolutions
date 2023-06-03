@@ -121,12 +121,6 @@ def plot_state_action(state_action_values, action_len, epoch):
     plt.savefig(f"plots/normalized-q-values-heatmap-{epoch}.png")
     plt.close()
 
-def get_return(alpha, gamma, reward, state_action_val, new_state_new_action_val):
-    """
-        Q(st,at) ← Q(st,at) + α[rt+1 + γQ(st+1,at+1) − Q(st,at)]
-    """
-    return state_action_val + alpha * (reward + gamma * (new_state_new_action_val - state_action_val))
-
 def simulate_explore_starts(env):
     # reset the environment.
     observation, info = env.reset()
